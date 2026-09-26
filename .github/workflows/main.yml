@@ -1,0 +1,46 @@
+name: Actualiza Euroliga y Eurocup en temporada
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Temporada sep-jun. Cada 10 min, todos los dias: el script sale enseguida
+    # si hoy no hay partidos nuevos.
+    - cron: "*/10 * * 9-12,1-6 *"
+
+permissions:
+  contents: write
+
+jobs:
+  actualiza:
+    runs-on: ubuntu-latest
+    env:
+      EUROLEAGUE_FEEDS_V2: ${{ secrets.EUROLEAGUE_FEEDS_V2 }}
+      EUROLEAGUE_FEEDS_V3: ${{ secrets.EUROLEAGUE_FEEDS_V3 }}
+      EUROLEAGUE_LIVE_API: ${{ secrets.EUROLEAGUE_LIVE_API }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::tidyverse
+            any::jsonlite
+            any::httr
+            any::janitor
+            any::gt
+
+      - name: Actualizar datos
+        run: Rscript scripts/main.R
+
+      - name: Commit y push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet || git commit -m "Auto: actualiza Euroliga/Eurocup $(date -u +%Y-%m-%d)"
+          git pull --rebase
+          git push

@@ -1,0 +1,80 @@
+name: Foto Box Creation tras cada jornada
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 23:55 hora de Madrid. El cron de GitHub va en UTC: 21:55 UTC en horario de
+    # verano y 22:55 UTC en invierno. Se programan las dos y el primer paso deja
+    # pasar solo la que cae entre las 23:50 y las 00:49 de Madrid (margen para los
+    # retrasos del cron de GitHub). Temporada sep-jun.
+    - cron: "55 21,22 * 9-12,1-6 *"
+
+permissions:
+  contents: write
+
+jobs:
+  foto:
+    runs-on: ubuntu-latest
+    env:
+      EUROLEAGUE_FEEDS_V2: ${{ secrets.EUROLEAGUE_FEEDS_V2 }}
+      EUROLEAGUE_FEEDS_V3: ${{ secrets.EUROLEAGUE_FEEDS_V3 }}
+      # lanzado a mano desde la pestana Actions: saca la foto aunque hoy no haya jornada
+      FORZAR_FOTO: ${{ github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Comprobar hora de Madrid
+        id: hora
+        run: |
+          hm=$((10#$(TZ=Europe/Madrid date +%H%M)))
+          if [ "$FORZAR_FOTO" = "true" ] || [ "$hm" -ge 2350 ] || [ "$hm" -lt 50 ]; then
+            echo "correr=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Son las $hm en Madrid, no toca."
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.hora.outputs.correr == 'true'
+
+      - name: Fuentes (Oswald y Font Awesome)
+        if: steps.hora.outputs.correr == 'true'
+        run: |
+          mkdir -p ~/.fonts
+          curl -fsSL -o ~/.fonts/Oswald.ttf \
+            "https://github.com/google/fonts/raw/main/ofl/oswald/Oswald%5Bwght%5D.ttf" \
+            || echo "No se pudo descargar Oswald"
+          curl -fsSL -o /tmp/fa.zip \
+            "https://github.com/FortAwesome/Font-Awesome/releases/download/6.5.2/fontawesome-free-6.5.2-desktop.zip" \
+            && unzip -j -o /tmp/fa.zip "*otfs/*.otf" -d ~/.fonts \
+            || echo "No se pudo descargar Font Awesome"
+          fc-cache -f
+
+      - uses: r-lib/actions/setup-r@v2
+        if: steps.hora.outputs.correr == 'true'
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        if: steps.hora.outputs.correr == 'true'
+        with:
+          packages: |
+            any::tidyverse
+            any::httr
+            any::janitor
+            any::gt
+            any::webshot2
+            any::glue
+            any::htmltools
+
+      - name: Sacar la foto
+        if: steps.hora.outputs.correr == 'true'
+        run: Rscript scripts/box_creation.R
+
+      - name: Commit y push
+        if: steps.hora.outputs.correr == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add png
+          git diff --cached --quiet && exit 0
+          git commit -m "Auto: foto Box Creation $(TZ=Europe/Madrid date +%Y-%m-%d)"
+          git pull --rebase
+          git push

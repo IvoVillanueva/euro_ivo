@@ -111,20 +111,32 @@ celda_nombre <- function(nombre, apellido, escudo, team_code) {
   )
 }
 
+# Ultima jornada ya jugada: el ranking es el acumulado hasta ella
+
+jornada <- read_csv(
+  paste0("data/gamecodes_euroleague_", temporada, ".csv"),
+  show_col_types = FALSE
+) %>%
+  filter(date <= now()) %>%
+  pull(jornada) %>%
+  max()
+
 titulo <- paste0(
-  "<div style='display: flex; align-items: center; height: 68px;",
+  "<div style='display: flex; align-items: center; height: 100px;",
   " font-family: Signate Grotesk; text-transform: uppercase;",
-  " font-size: 54px;'>",
+  " font-size: 45px;'>",
   "<img src='https://media-cdn.incrowdsports.com/",
   "23610a1b-1c2e-4d2a-8fe4-ac2f8e400632.svg'",
-  " style='height: 84px; padding-right: 12px'>",
-  "<span>Lideres en Box Creation</span></div>"
+  " style='height: 100px; padding-right: 14px'>",
+  "<span style='position: relative; top: 6px;'>Destacados tras la jornada ",
+  jornada, "</span></div>"
 )
 
 subtitulo <- paste0(
   "<span style='font-family: Signate Grotesk; color: #8C8C8C;",
   " font-size: 30px'>",
-  "Más del 60% de los partidos de su equipo, por 100 posesiones | Temporada ",
+  "Más del 60% de los partidos de su equipo | Box Creation por 100 pos.",
+  " | Temporada ",
   temporada, "</span>"
 )
 
@@ -165,14 +177,17 @@ ranking %>%
   fmt_number(columns = c(val, dre), decimals = 1) %>%
   cols_align(align = "center", columns = c(gp, min, box_creation, val, dre)) %>%
   data_color(columns = dre, palette = c("white", "#FF6200")) %>%
+  tab_style(cell_borders(sides = "top", weight = px(0)), cells_body(rows = 1)) %>%
   tab_header(title = html(titulo), subtitle = html(subtitulo)) %>%
   tab_source_note(source_note = html(caption)) %>%
   tab_options(
     heading.align = "left",
     heading.border.bottom.style = "none",
+    table.border.top.style = "none",
+    table_body.border.top.style = "none",
     table.border.bottom.style = "none",
     column_labels.border.top.style = "none",
-    column_labels.border.bottom.color = "black",
+    column_labels.border.bottom.style = "none",
     data_row.padding = px(0),
     table.font.size = 60,
     column_labels.font.size = 30,

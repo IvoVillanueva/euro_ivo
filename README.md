@@ -33,11 +33,10 @@
 
 ---
 
-## 📊 Líderes en Box Creation
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/IvoVillanueva/EUROLIGAS/main/png/euroleague.png" width="700" alt="Líderes en Box Creation de la Euroliga">
+<img src="https://raw.githubusercontent.com/IvoVillanueva/EUROLIGAS/main/png/euroleague.png" width="500" alt="Líderes en Box Creation de la Euroliga">
 
 </div>
 

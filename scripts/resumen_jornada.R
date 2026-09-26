@@ -23,7 +23,8 @@ ritmo <- read_csv(
   )
 
 
-# Top 20 por 100 posesiones con mas del 60% de los partidos de su equipo
+# Top 10 por DRE con mas del 60% de los partidos de su equipo; Box Creation
+# por 100 posesiones, VAL y DRE por partido
 
 ranking <- read_csv(
   paste0("data/euroleague_player_stats_traditional_", temporada, ".csv"),
@@ -40,9 +41,13 @@ ranking <- read_csv(
     tov = turnovers / poss * 100,
     prof = (2 / (1 + exp(-fg3a)) - 1) * fg3_pct,
     box_creation = ast * 0.1843 + (pts + tov) * 0.0969 - 2.3021 * prof +
-      0.0582 * ast * (pts + tov) * prof - 1.1942
+      0.0582 * ast * (pts + tov) * prof - 1.1942,
+    dre = -8.4 + 0.8 * points_scored - 0.7 * two_pointers_attempted -
+      0.6 * three_pointers_attempted - 0.2 * free_throws_attempted +
+      0.1 * offensive_rebounds + 0.4 * defensive_rebounds + 0.5 * assists +
+      1.7 * steals + 0.8 * blocks - 1.4 * turnovers - 0.1 * fouls_commited
   ) %>%
-  slice_max(box_creation, n = 20, with_ties = FALSE) %>%
+  slice_max(dre, n = 10, with_ties = FALSE) %>%
   transmute(
     rk = row_number(),
     nombre = word(name, 1),
@@ -52,9 +57,9 @@ ranking <- read_csv(
     team_code,
     gp = games_played,
     min = minutes_played,
-    pts,
-    ast,
-    box_creation
+    box_creation,
+    val = pir,
+    dre
   )
 
 
@@ -143,7 +148,7 @@ ranking %>%
     foto = map(celda_foto(escudo, foto), gt::html),
     nombre = map(celda_nombre(nombre, apellido, escudo, team_code), gt::html)
   ) %>%
-  select(rk, foto, nombre, gp, min, pts, ast, box_creation) %>%
+  select(rk, foto, nombre, gp, min, box_creation, val, dre) %>%
   gt() %>%
   cols_label(
     rk = "",
@@ -151,14 +156,15 @@ ranking %>%
     nombre = "",
     gp = "GP",
     min = "MP",
-    pts = "PTS",
-    ast = "AST",
-    box_creation = html("BOX<br>CREATION")
+    box_creation = html("BOX<br>CREATION"),
+    val = "VAL",
+    dre = "DRE"
   ) %>%
-  cols_width(c(gp, min, pts, box_creation) ~ px(150)) %>%
-  fmt_number(columns = c(min, pts, ast, box_creation), decimals = 2) %>%
-  cols_align(align = "center", columns = c(gp, min, pts, ast, box_creation)) %>%
-  data_color(columns = box_creation, palette = c("white", "#FF6200")) %>%
+  cols_width(c(gp, min, box_creation, val, dre) ~ px(150)) %>%
+  fmt_number(columns = c(min, box_creation), decimals = 2) %>%
+  fmt_number(columns = c(val, dre), decimals = 1) %>%
+  cols_align(align = "center", columns = c(gp, min, box_creation, val, dre)) %>%
+  data_color(columns = dre, palette = c("white", "#FF6200")) %>%
   tab_header(title = html(titulo), subtitle = html(subtitulo)) %>%
   tab_source_note(source_note = html(caption)) %>%
   tab_options(
@@ -175,4 +181,4 @@ ranking %>%
     table_body.hlines.color = "gray90",
     table.font.names = "Oswald"
   ) %>%
-  gtsave("png/euroleague.png", vwidth = 3000, vheight = 1500, expand = 100)
+  gtsave("png/resumen_jornada.png", vwidth = 3000, vheight = 1500, expand = 100)

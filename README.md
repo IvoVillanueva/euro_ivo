@@ -36,7 +36,7 @@
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/IvoVillanueva/EUROLIGAS/main/png/euroleague.png" width="500" alt="Líderes en Box Creation de la Euroliga">
+<img src="https://raw.githubusercontent.com/IvoVillanueva/EUROLIGAS/main/png/resumen_jornada.png" width="500" alt="Resumen de jornada de la Euroliga">
 
 </div>
 
@@ -51,7 +51,7 @@ Se actualiza sola cada noche de jornada a las 23:55 (hora de Madrid). Entran los
 - **Jugadores**: plantillas con foto, equipo, nacionalidad, posición... acumulativo: quien deja el equipo se queda con `active = FALSE`.
 - **Equipos**: nombre, escudo y colores oficiales.
 - **Stats de temporada**: un CSV por tipo (`traditional`, `advanced`, `misc`, `scoring` en jugadores; `traditional`, `advanced` y sus `opponents` en equipos).
-- **Box Creation**: ranking en imagen (arriba), con posesiones y pace calculados por equipo.
+- **Resumen de jornada**: top 10 en imagen (arriba) por DRE, con Box Creation y VAL; posesiones y pace calculados por equipo.
 - **Temporada automática**: se calcula sola a partir de la fecha del sistema.
 
 ## 📂 Estructura
@@ -71,7 +71,7 @@ EUROLIGAS/
 │   ├── get_teams.R             # equipos, escudos y colores
 │   ├── players_stats.R         # stats de temporada por jugador
 │   ├── teams_stats.R           # stats de temporada por equipo
-│   └── box_creation.R          # imagen del ranking de Box Creation
+│   └── resumen_jornada.R       # imagen top 10 por DRE: Box Creation, VAL y DRE
 ├── data/                       # CSVs generados, uno por temporada
 ├── png/                        # imagen del ranking
 └── .github/workflows/          # automatizacion
@@ -94,13 +94,13 @@ install.packages(c("tidyverse", "httr", "jsonlite", "janitor", "gt"))
 
 ```bash
 Rscript scripts/main.R
-Rscript scripts/box_creation.R
+Rscript scripts/resumen_jornada.R
 ```
 
 ## 🗓️ Automatización
 
 - [`main.yml`](.github/workflows/main.yml): cada 10 minutos entre septiembre y junio, o a mano desde *Actions*. Actualiza los CSV de `data/`.
-- [`box_creation.yml`](.github/workflows/box_creation.yml): cada noche a las 23:55 (hora de Madrid) saca la foto del ranking y la sube a `png/euroleague.png`.
+- [`resumen_jornada.yml`](.github/workflows/resumen_jornada.yml): cada noche a las 23:55 (hora de Madrid) saca la foto del ranking y la sube a `png/resumen_jornada.png`.
 
 ## 🧹 Estilo
 

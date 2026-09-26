@@ -1,5 +1,5 @@
 # Orden importa: calendario -> partidos -> pbp enriquecido -> stats
-# (box_creation.R va aparte, en su propio workflow nocturno)
+# (resumen_jornada.R va aparte, en su propio workflow nocturno)
 
 source("scripts/get_rounds.R")
 source("scripts/get_boxscore.R")

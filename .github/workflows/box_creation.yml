@@ -34,8 +34,11 @@ jobs:
       - uses: actions/checkout@v4
         if: steps.hora.outputs.correr == 'true'
 
-      - name: Fuentes (Oswald y Font Awesome)
+      - name: Fuentes (Oswald, Font Awesome y Signate Grotesk)
         if: steps.hora.outputs.correr == 'true'
+        env:
+          # Signate recortada a latin, en gzip + base64 (no se publica en el repo)
+          SIGNATE_FONT: ${{ secrets.SIGNATE_FONT }}
         run: |
           mkdir -p ~/.fonts
           curl -fsSL -o ~/.fonts/Oswald.ttf \
@@ -45,7 +48,10 @@ jobs:
             "https://github.com/FortAwesome/Font-Awesome/releases/download/6.5.2/fontawesome-free-6.5.2-desktop.zip" \
             && unzip -j -o /tmp/fa.zip "*otfs/*.otf" -d ~/.fonts \
             || echo "No se pudo descargar Font Awesome"
+          echo "$SIGNATE_FONT" | base64 -d | gunzip > ~/.fonts/signategrotesk-black.ttf \
+            || echo "Falta el secret SIGNATE_FONT"
           fc-cache -f
+          fc-list | grep -i signate || echo "Signate Grotesk no instalada"
 
       - uses: r-lib/actions/setup-r@v2
         if: steps.hora.outputs.correr == 'true'
